@@ -1,2 +1,4 @@
 # learn-network-program
-learn network programming
+OS: ubuntu22.04
+
+gcc: 11.4.0
