@@ -1,11 +1,11 @@
-#include "tools.h"
+#include "../include/tools.h"
 
 int main(){
-    int servesock = CreateSeverSocket(AF_INET, SOCK_STREAM, 0);
+    int servesock = CreateSeverSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     char recvBuf[BUFSIZ];
     char sendBuf[BUFSIZ];
-
+    
     while(true){
     int client = accept(servesock, NULL, NULL);
     while (true)

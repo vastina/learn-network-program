@@ -17,6 +17,11 @@ bool quitjudge(const char* s){
     return false;
 }; 
 
+bool sendfile(const char* s){
+	if(s[0]=='f' && s[1]=='i' && s[2]=='l' && s[3]=='e' && strlen(s)==4) return true;
+	return false;
+}
+
 
 int CreateSeverSocket(int af,int type,int protocol)
 {
@@ -56,15 +61,16 @@ int CreateClientSocket(int af,int type,int protocol){
         errorhandling("invalid socket: ", errno);
 		return -1;
 	}
-    struct sockaddr_in clntaddr;
-    memset(&clntaddr, 0, sizeof(clntaddr));
-    clntaddr.sin_family = AF_INET;
-    clntaddr.sin_addr.s_addr= inet_addr("127.0.0.1");
+    struct sockaddr_in serveaddr;
+    memset(&serveaddr, 0, sizeof(serveaddr));
+    serveaddr.sin_family = af;
+    serveaddr.sin_addr.s_addr= inet_addr("127.0.0.1");
 	short PORT = 8888; printf("input port:");
 	scanf("%hd", &PORT);
-    clntaddr.sin_port = htons(PORT);
-    if (connect(so, (struct sockaddr*)&clntaddr, sizeof(clntaddr)) == -1)
+    serveaddr.sin_port = htons(PORT);
+    if (connect(so, (struct sockaddr*)&serveaddr, sizeof(serveaddr)) == -1)
         errorhandling("connect fail: ", errno);
     
     return so;
+	
 }

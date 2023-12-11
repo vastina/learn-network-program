@@ -1,8 +1,8 @@
 
-#include "tools.h"
+#include "../include/tools.h"
 
 int main(){
-    int clientsock = CreateClientSocket(AF_INET, SOCK_STREAM, 0);
+    int clientsock = CreateClientSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     char recvBuf[BUFSIZ];
     char sendBuf[BUFSIZ];
@@ -18,7 +18,7 @@ int main(){
         if(quitjudge(sendBuf)) break;
         memset(sendBuf, 0, sizeof(sendBuf));
         
-		if (read(clientsock, recvBuf, BUFSIZ) > 0)
+		if (read(clientsock, recvBuf, sizeof(char)*BUFSIZ) > 0)
 		{
             if(quitjudge(recvBuf)){
                 printf("serve disconnect\n");
