@@ -1,51 +1,92 @@
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <memory>
+#include <thread>
+#include <future>
+
 #define VASTINA_CPP
 #include "../include/tools.h"
 
 
 int main(){
+    printf("ports: 8888, 9190, 9876, 1453\n");
     int clientsock = CreateClientSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    //char buffer[BUFSIZ]; data race 
+    bool stop = false;
+    std::mutex smutex;
+    std::vector< std::future<int> > results{};
+    std::vector< std::thread> workers{};
+    std::vector< std::packaged_task<int()> > tasks{};
 
-    char buffer[BUFSIZ];
+    tasks.emplace_back(std::packaged_task<int()>([&]{
+        //int clientsock = CreateClientSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        char buffer1[BUFSIZ];    
+        while(true){
+            printf("\nsend message or quit(enter quit or q to quit) : ");
+            scanf("%s", buffer1);
 
-    while(true)
-    {
-        printf("send message or quit(enter quit or q to quit) : ");
-		scanf("%s", buffer);
-		if (-1 == write(clientsock, buffer, strlen(buffer)))
-		{
-            errorhandling("fail to send with code: %d\n", errno);
-		}
-        if(quitjudge(buffer)){
-            //shutdown(clientsock, SHUT_WR);
-            break;
-        } 
-        else if(sendfile(buffer)){
-            FILE* fp;
-            fp = fopen("b.txt", "wb");
-            if(fp == NULL) printf("no such a file\n");
-            int read_count = 0;
-            if((read_count = read(clientsock, buffer, BUFSIZ) )> 0)
-                fwrite((void*)buffer, sizeof(char), read_count, fp);
-            fclose(fp);
-            printf("file received\n");
-            fclose(fp);
-        }
-        memset(buffer, 0, sizeof(buffer));
-        
-		if (read(clientsock, buffer, sizeof(char)*BUFSIZ) > 0)
-		{
-            if(quitjudge(buffer)){
-                printf("serve disconnect\n");
-                break;
+            if (-1 == write(clientsock, buffer1, strlen(buffer1)))
+            {
+                errorhandling("\nfail to send with code: %d\n", errno);
             }
-            printf("recive message:%s \n", buffer);
-			memset(buffer, 0, sizeof(buffer));
-		}	
+
+            if(quitjudge(buffer1)){
+                {
+                    std::lock_guard<std::mutex> lock(smutex);
+                    stop = true;
+                }
+                break;
+            } 
+        }   return 1;
+    }) );
+    tasks.emplace_back(std::packaged_task<int()>([&]{//&smutex,&clientsock, &stop
+        char buffer[BUFSIZ];
+        while(!stop){
+            if (read(clientsock, buffer, sizeof(char)*BUFSIZ) > 0)
+		    {  
+                if(quitjudge(buffer)){
+                    printf("\nserve disconnect\n");
+                    break;
+                }
+                else if(sendfile(buffer)){
+                    FILE* fp;
+                    fp = fopen("b.txt", "wb");
+                    if(fp == NULL){
+                        system("touch b.txt");
+                        fp = fopen("b.txt", "wb");
+                    } 
+                    int read_count = 0;
+                    {
+                        std::lock_guard<std::mutex> lock(smutex);
+                        if((read_count = read(clientsock, buffer, BUFSIZ) )> 0)
+                            fwrite((void*)buffer, sizeof(char), read_count, fp);
+                    }   
+                    fclose(fp);
+                    printf("\nfile received\n");
+                }
+                else{
+                    print("\nrecive message:{} \n", buffer);
+                }
+                memset(buffer, 0, sizeof(buffer));
+		    }	
+        }   return 2;
+    }));
+
+    for(int count=0;auto& task: tasks)
+    {
+        results.emplace_back(task.get_future() );
+        workers.emplace_back(
+            [&count, &task] 
+            { 
+                task(); 
+            } 
+        );
     }
-    printf("will be closed in one minute.......\n");
-    int t = clock();
-    while(clock()-t < 60) if(read(clientsock, buffer, BUFSIZ) ) break;
-    printf("last message from serve: %s \n", buffer);
+    for(auto& worker: workers) worker.join();
+    for(int count=0;auto& result:results)
+        print("({}, {})\n", ++count,result.get());
 
     close(clientsock);
     return 0;
