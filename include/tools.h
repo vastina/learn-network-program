@@ -103,7 +103,7 @@ void errorhandling(const std::string_view fmt_str, Args&&... args){
     auto fmt_args{ std::make_format_args(args...) };
     std::string outstr{ std::vformat(fmt_str, fmt_args) };
     fputs(outstr.c_str(), stderr);
-    system("read");
+    if(system("read"));
 };
 
 template<typename... Args>
@@ -125,8 +125,10 @@ bool sendfile(const char* s){
 	return false;
 }
 
-const unsigned short PORT[5]{8888, 9190, 9876, 1453, 0};static int i=0;
+//const unsigned short PORT[5]{8888, 9190, 9876, 1453, 0};
 // bool mark[5]{false, false, false, false, false};
+const unsigned short PORT{8888};
+//static int i=0;	std::mutex im;
 int CreateSeverSocket(int af,int type,int protocol)
 {
 	int so = socket(af, type, protocol);
@@ -137,7 +139,9 @@ int CreateSeverSocket(int af,int type,int protocol)
 	}
 	sockaddr_in addr{};
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(PORT[i++]);
+	//im.lock();
+	addr.sin_port = htons(PORT);
+	//im.unlock();
 	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	if (bind(so, (struct sockaddr*)&addr, sizeof(addr)) == -1)
 	{
@@ -160,8 +164,9 @@ int CreateClientSocket(int af,int type,int protocol){
     memset(&clntaddr, 0, sizeof(clntaddr));
     clntaddr.sin_family = AF_INET;
     clntaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	unsigned short port;	printf("input port:");	scanf("%hd", &port);
-    clntaddr.sin_port = htons(port);
+	unsigned short port;	printf("input port:");	
+	if(scanf("%hd", &port) )
+    clntaddr.sin_port = htons(port) ;
     if (connect(so, (struct sockaddr*)&clntaddr, sizeof(clntaddr)) == INVALID_SOCKET)
         errorhandling("connect fail {}\n", errno);
     

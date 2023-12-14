@@ -17,10 +17,9 @@ int main(){
     std::vector< std::future<int> > results{};
     std::vector< std::thread> workers{};
     std::vector< std::packaged_task<int(int)> > tasks{};
-
+    int servesock = CreateSeverSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     for(int i = 0; i < 4; ++i) {
-        tasks.emplace_back(std::packaged_task<int(int)>( [&](int i)->int{
-            int servesock = CreateSeverSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        tasks.emplace_back(std::packaged_task<int(int)>( [&servesock](int i)->int{
             int client = 0;
             while(!client) client = accept(servesock, NULL, NULL);
             char buffer[BUFSIZ];

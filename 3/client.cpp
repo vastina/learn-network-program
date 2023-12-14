@@ -11,7 +11,7 @@
 
 
 int main(){
-    printf("ports: 8888, 9190, 9876, 1453\n");
+    printf("port to connect: 8888,\n");
     int clientsock = CreateClientSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     //char buffer[BUFSIZ]; data race 
     bool stop = false;
