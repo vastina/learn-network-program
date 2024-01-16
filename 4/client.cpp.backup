@@ -1,0 +1,78 @@
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <memory>
+#include <thread>
+#include <future>
+
+#define VASTINA_CPP
+#include "../include/tools.h"
+#include "../include/client.hpp"
+
+
+int main(){
+
+    vastina_log::logtest("start");
+
+    printf("port to connect: 8888\n");
+    client *client_ = new client();
+
+    client_->init();
+    // {
+    //     client_->submit([]{ vastina_log::logtest("lowesttest"); },  importance::lowest);
+    //     client_->submit([]{ vastina_log::logtest("commontest"); },  importance::common);
+    // }
+    client_->setclientsock(AF_INET, SOCK_STREAM, IPPROTO_TCP, -1);
+    client_->connect_(AF_INET, SOCK_STREAM, IPPROTO_TCP, 8888);
+
+    std::vector< std::thread > workers{};
+    std::vector< std::packaged_task<int()> > tasks{};
+    std::vector< std::future<int> > results{};
+
+    // struct control
+    // {
+    //     int flag ;
+    //     std::condition_variable condition;
+    //     std::mutex fmutex;
+    // } stopcontrol;
+    // stopcontrol.flag = 2;
+
+    tasks.emplace_back(std::packaged_task<int()>( [&client_]()->int{
+        client_->test1();
+        // {
+        //     std::unique_lock<std::mutex> l(stopcontrol.fmutex);
+        //     //stopcontrol.condition.wait(l, [&stopcontrol]{ return (stopcontrol.flag==2); });
+        //     --stopcontrol.flag;
+        //     //stopcontrol.condition.notify_one();
+        // }
+        return 1;
+    } ) );
+
+    tasks.emplace_back(std::packaged_task<int()>( [&client_]()->int{
+        client_->test2();
+        // {
+        return 2;
+    } ) );
+
+    for(auto&task: tasks){
+        workers.emplace_back(std::thread{ [&]{ task(); } });
+        results.push_back( task.get_future() );
+    }
+
+    for(auto& worker: workers) print("thread {} join\n", worker.native_handle());
+    for(int i=workers.size()-1; i>=0; --i){
+        std::thread t = std::move(workers[i]);
+        workers.pop_back();
+        t.join();
+    }
+
+    // while(stopcontrol.flag){
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    // }
+
+    for(int i=1;auto&result: results) print("({},{})\n", i, result.get()), ++i;
+
+    client_->end();
+
+    return 0;
+}

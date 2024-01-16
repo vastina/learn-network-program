@@ -1,0 +1,43 @@
+16:21:50.347810 loopback0 In  IP localhost.56997 > localhost.8888: Flags [S], seq 3122040651, win 64240, options [mss 1460,nop,wscale 8,nop,nop,sackOK], length 0
+16:21:50.347834 loopback0 Out IP localhost.8888 > localhost.56997: Flags [S.], seq 1030265673, ack 3122040652, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
+16:21:50.348027 loopback0 In  IP localhost.56997 > localhost.8888: Flags [.], ack 1, win 8195, length 0
+16:21:50.348173 loopback0 In  IP localhost.56997 > localhost.8888: Flags [P.], seq 1:710, ack 1, win 8195, length 709
+16:21:50.348185 loopback0 Out IP localhost.8888 > localhost.56997: Flags [.], ack 710, win 501, length 0
+16:21:53.105143 loopback0 In  IP localhost.56997 > localhost.8888: Flags [F.], seq 710, ack 1, win 8195, length 0
+16:21:53.148541 loopback0 Out IP localhost.8888 > localhost.56997: Flags [.], ack 711, win 501, length 0
+
+16:21:37.232440 loopback0 In  IP localhost.56988 > localhost.8888: Flags [S], seq 622783690, win 64240, options [mss 1460,nop,wscale 8,nop,nop,sackOK], length 0
+16:21:37.232466 loopback0 Out IP localhost.8888 > localhost.56988: Flags [S.], seq 1971593944, ack 622783691, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
+16:21:37.232631 loopback0 In  IP localhost.56988 > localhost.8888: Flags [.], ack 1, win 8195, length 0
+16:21:37.235522 loopback0 In  IP localhost.56988 > localhost.8888: Flags [P.], seq 1:658, ack 1, win 8195, length 657
+16:21:37.235569 loopback0 Out IP localhost.8888 > localhost.56988: Flags [.], ack 658, win 501, length 0
+16:21:37.235763 loopback0 Out IP localhost.8888 > localhost.56988: Flags [P.], seq 1:331, ack 658, win 501, length 330
+16:21:37.235952 loopback0 In  IP localhost.56988 > localhost.8888: Flags [.], ack 331, win 8194, length 0
+
+16:21:37.232902 loopback0 In  IP localhost.56989 > localhost.8888: Flags [S], seq 687352864, win 64240, options [mss 1460,nop,wscale 8,nop,nop,sackOK], length 0
+16:21:37.232914 loopback0 Out IP localhost.8888 > localhost.56989: Flags [S.], seq 3559636034, ack 687352865, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
+16:21:37.233079 loopback0 In  IP localhost.56989 > localhost.8888: Flags [.], ack 1, win 8195, length 0
+16:21:44.094941 loopback0 In  IP localhost.56989 > localhost.8888: Flags [P.], seq 1:710, ack 1, win 8195, length 709
+16:21:44.094987 loopback0 Out IP localhost.8888 > localhost.56989: Flags [.], ack 710, win 501, length 0
+16:21:44.095136 loopback0 Out IP localhost.8888 > localhost.56989: Flags [P.], seq 1:331, ack 710, win 501, length 330
+16:21:44.095326 loopback0 In  IP localhost.56989 > localhost.8888: Flags [.], ack 331, win 8194, length 0
+16:21:54.454857 loopback0 In  IP localhost.56989 > localhost.8888: Flags [F.], seq 710, ack 331, win 8194, length 0
+16:21:54.498512 loopback0 Out IP localhost.8888 > localhost.56989: Flags [.], ack 711, win 501, length 0
+
+16:21:46.479372 loopback0 In  IP localhost.56993 > localhost.8888: Flags [S], seq 1656645816, win 64240, options [mss 1460,nop,wscale 8,nop,nop,sackOK], length 0
+16:21:46.479422 loopback0 Out IP localhost.8888 > localhost.56993: Flags [S.], seq 3980734070, ack 1656645817, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
+16:21:46.479866 loopback0 In  IP localhost.56993 > localhost.8888: Flags [.], ack 1, win 8195, length 0
+16:21:46.479961 loopback0 In  IP localhost.56993 > localhost.8888: Flags [P.], seq 1:710, ack 1, win 8195, length 709
+16:21:46.479969 loopback0 Out IP localhost.8888 > localhost.56993: Flags [.], ack 710, win 501, length 0
+16:21:46.480080 loopback0 Out IP localhost.8888 > localhost.56993: Flags [P.], seq 1:331, ack 710, win 501, length 330
+16:21:46.480199 loopback0 In  IP localhost.56993 > localhost.8888: Flags [.], ack 331, win 8194, length 0
+16:21:53.919367 loopback0 In  IP localhost.56993 > localhost.8888: Flags [F.], seq 710, ack 331, win 8194, length 0
+16:21:53.978509 loopback0 Out IP localhost.8888 > localhost.56993: Flags [.], ack 711, win 501, length 0
+
+16:21:48.636199 loopback0 In  IP localhost.56996 > localhost.8888: Flags [S], seq 3189659856, win 64240, options [mss 1460,nop,wscale 8,nop,nop,sackOK], length 0
+16:21:48.636225 loopback0 Out IP localhost.8888 > localhost.56996: Flags [S.], seq 3906595578, ack 3189659857, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
+16:21:48.636449 loopback0 In  IP localhost.56996 > localhost.8888: Flags [.], ack 1, win 8195, length 0
+16:21:48.636534 loopback0 In  IP localhost.56996 > localhost.8888: Flags [P.], seq 1:710, ack 1, win 8195, length 709
+16:21:48.636562 loopback0 Out IP localhost.8888 > localhost.56996: Flags [.], ack 710, win 501, length 0
+16:21:48.636698 loopback0 Out IP localhost.8888 > localhost.56996: Flags [P.], seq 1:331, ack 710, win 501, length 330
+16:21:48.636821 loopback0 In  IP localhost.56996 > localhost.8888: Flags [.], ack 331, win 8194, length 0

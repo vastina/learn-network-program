@@ -87,13 +87,14 @@ int CreateClientSocket(int af,int type,int protocol){
 
 #ifdef VASTINA_CPP
 
+#include <iostream>
 #include <format>
 #include <cstring>
-#include <string_view>
 #include <sys/socket.h>
 #include <sys/unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <chrono>
 
 #define BUFSIZE 8192
 #define INVALID_SOCKET -1
@@ -123,6 +124,41 @@ bool quitjudge(const char* s){
 bool sendfile(const char* s){
 	if(s[0]=='f' && s[1]=='i' && s[2]=='l' && s[3]=='e' && strlen(s)==4) return true;
 	return false;
+}
+
+void showtime(){
+	// 获取当前系统时间点
+    auto currentTime = std::chrono::system_clock::now();
+    // 将时间点转换为时间结构
+    std::time_t currentTime_t = std::chrono::system_clock::to_time_t(currentTime);
+    std::tm localTime = *std::localtime(&currentTime_t);
+    // 使用 chrono::duration 表示微秒
+    // auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
+    //     currentTime.time_since_epoch() % std::chrono::seconds(1)
+    // );
+    // 打印本地时间的各个组成部分
+    std::cout << "Current local time: "
+              << localTime.tm_year + 1900 << "-"  // 年份，需要加上 1900
+              << localTime.tm_mon + 1 << "-"       // 月份，需要加上 1
+              << localTime.tm_mday << " "          // 日
+              << localTime.tm_hour << ":"          // 时
+              << localTime.tm_min << ":"           // 分
+              << localTime.tm_sec << ".\n\n"  ;         // 秒
+              //<< microseconds.count() << std::endl; // 微秒
+}
+
+
+void gettimebystring(std::string &str){
+	auto currentTime = std::chrono::system_clock::now();
+	std::time_t currentTime_t = std::chrono::system_clock::to_time_t(currentTime);
+    std::tm localTime = *std::localtime(&currentTime_t);
+	str += std::format("Current local time: {}-{}-{} {}:{}:{}\n",
+			localTime.tm_year + 1900,
+			localTime.tm_mon + 1,
+			localTime.tm_mday,
+			localTime.tm_hour,
+			localTime.tm_min,
+			localTime.tm_sec);
 }
 
 //const unsigned short PORT[5]{8888, 9190, 9876, 1453, 0};

@@ -1,0 +1,314 @@
+#ifndef _CLIENT_SOCK_H_
+#define _CLIENT_SOCK_H_
+
+#include <iostream>
+#include <format>
+#include <sys/socket.h>
+#include <sys/unistd.h>
+#include <arpa/inet.h>
+#include <thread>
+#include <mutex>
+#include <future>
+#include <queue>
+#include <functional>
+#include <chrono>
+#include <string_view>
+#include <fstream>
+
+#define VASTINA_CPP
+#include "tools.h"
+#include "loger.hpp"
+
+
+enum importance{
+        maintk=1,
+        common,
+        lowest 
+    };
+
+class Taskpool{
+private:
+    struct common_{
+        std::thread worker;
+        //std::future<int> _future;
+        std::packaged_task<void()> work;
+        //std::condition_variable condition;
+        bool stop;
+    } common;
+    std::mutex tmutex;
+    std::queue<std::function<void()>> tasks2;
+    std::queue<std::function<void()>> tasks;
+    
+public:
+    void start();
+    template<typename F, typename...Args>
+        void submittask(F&& f, Args&&... args, int level);
+    void lastwork();
+    void setstoped();
+};
+
+void Taskpool::start(){
+    {
+    std::unique_lock<std::mutex> lk(tmutex);
+    common.stop = false;
+    common.work = std::packaged_task<void()>{[&]()->void{
+        for(;;){
+            if(tasks2.empty()) std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::function<void()> task;
+            {
+                std::unique_lock<std::mutex> lock(tmutex);
+                // common.condition.wait(lock,
+                //     [this]{ return common.stop || !tasks2.empty(); }
+                // );
+                if(common.stop && tasks.empty()) break;
+                if(!tasks2.empty()){
+                    task = std::move(tasks2.front());
+                    tasks2.pop();
+                } 
+            }
+            task();
+        }   //return 1;
+    }};
+    common.worker = std::thread{ [this](){ common.work(); } };
+    //if(common.worker.joinable()) common.worker.join();
+    //common._future = common.work.get_future();
+    }
+    submittask([]{ vastina_log::logtest("taskpool init"); } , importance::lowest);
+}
+
+void Taskpool::lastwork() {
+    {
+        std::unique_lock<std::mutex> lock(tmutex);
+        std::function<void()> task;
+        while (!tasks.empty())
+        {
+            {
+                task = std::move(tasks.front());
+                tasks.pop();
+            }
+            task();
+        }
+    }
+    //print("(commonfuture: {})\n",common._future.get());
+};
+
+template<typename F, typename...Args>
+void Taskpool::submittask(F&& f, Args&&... args, int level) {
+    std::function<decltype(f(args...))()> func 
+        = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+    auto task_ptr = std::make_shared<std::packaged_task<decltype(f(args...))()>>(func);
+    if(level == importance::lowest){
+        {
+            std::unique_lock<std::mutex> lock(tmutex);
+            tasks.emplace(std::function<void()>( [task_ptr](){
+                (*task_ptr)(); 
+            }));
+        }       
+    }
+    else if(level == importance::common){
+        {
+            std::unique_lock<std::mutex> lk(tmutex);
+            tasks2.emplace(std::function<void()>( [task_ptr](){
+                (*task_ptr)(); 
+            }));
+            //common.condition.notify_one();
+        }
+        if(common.worker.joinable()) common.worker.join();
+    }
+};
+
+void Taskpool::setstoped(){
+    {
+        std::unique_lock<std::mutex> lk(tmutex);
+        common.stop = true;
+    }
+}
+
+
+const char* localaddr = "127.0.0.1";
+
+class client{
+private:
+    int clientsock;
+    char readbuffer[4096], sendbuffer[4096];
+    Taskpool tpool;
+    std::condition_variable condition;
+    struct _stop{
+        //std::atomic<bool>  stop ;
+        bool stop;
+        std::mutex smutex;
+    } stop_;
+
+public:
+    
+    void init();
+    void setclientsock(int af,int type,int protocol, short port);
+    void connect_(int af,int type,int protocol, unsigned short port);
+    template<typename F, typename...Args>
+        void submit(F&& f, Args&&... args, int level);
+
+    //void manage(const char* request);
+    void send_message();
+    void getfile(const char* filename);
+    bool recive_message();
+    void deal_message();
+
+    void test1();
+    void test2();
+    
+    void end(){
+        tpool.setstoped();
+        tpool.lastwork();
+        close(clientsock);
+    }
+
+};
+
+void client::test1(){
+    while(true){
+        printf("\nsend message> ");/*or quit(enter quit or q to quit)*/
+        scanf("%s", sendbuffer);
+        {
+            std::lock_guard<std::mutex> l(stop_.smutex);
+            if(quitjudge(sendbuffer))
+            {
+                //std::lock_guard<std::mutex> l(stop_.smutex);
+                //stop_.stop = true;
+                stop_.stop = true;
+            }
+            condition.notify_one();
+        }
+        if(stop_.stop) return;
+        send_message();
+        //showtime();
+    }  
+}
+
+void client::test2(){
+    while (true){
+        {
+            std::unique_lock<std::mutex> l(stop_.smutex);
+            condition.wait(l);
+            if(stop_.stop) break;
+        }
+        if(recive_message()){
+            deal_message();
+            //showtime();
+        }
+    }
+}
+
+void client::init(){
+    memset(readbuffer, 0, sizeof(readbuffer));
+    memset(sendbuffer, 0, sizeof(readbuffer));
+    tpool.start();
+}
+
+void client::setclientsock(int af,int type,int protocol, short port = -1){
+    clientsock = socket(af, type, protocol);
+    struct sockaddr_in clientaddr;
+    memset(&clientaddr, 0, sizeof(clientaddr));
+    clientaddr.sin_family = af;
+    clientaddr.sin_addr.s_addr = inet_addr(localaddr);
+    if(port == -1)
+	clientaddr.sin_port = htons(INADDR_ANY) ;
+    else clientaddr.sin_port = htons(port);
+    if(bind(clientsock, (struct sockaddr*)&clientaddr, sizeof(clientaddr))== -1){
+        errorhandling("bind fail error code: {}\n", errno);
+        submit([]{
+            vastina_log::logtest("bind fail");
+        }, importance::lowest);
+    }   
+}
+
+void client::connect_(int af,int type,int protocol, unsigned short port = 8888){
+    struct sockaddr_in serveaddr;
+    memset(&serveaddr, 0, sizeof(serveaddr));
+    serveaddr.sin_family = AF_INET;
+    serveaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	serveaddr.sin_port = htons(port) ;
+    if(connect(clientsock, (struct sockaddr*)&serveaddr, sizeof(serveaddr)) == -1){
+        //errorhandling("connect fail {}\n", errno);
+        submit([]{
+            vastina_log::logtest(std::format("connect fail {}\n", errno).c_str());
+        }, importance::lowest);
+    }
+}
+
+template<typename F, typename...Args>
+void client::submit(F&& f, Args&&... args, int level){
+    if(level == importance::maintk){
+        //todo
+    }
+    else tpool.submittask(f, args..., level);
+};
+
+void client::send_message(){
+    // printf("\nsend message> ");/*or quit(enter quit or q to quit)*/
+    // scanf("%s", sendbuffer);
+    // {
+    //     std::lock_guard<std::mutex> lg(stop_.smutex);
+    //     if(quitjudge(sendbuffer)){
+    //         stop_.stop = true;
+    //         return;
+    //     }
+    // }
+    if (-1 == write(clientsock, sendbuffer, strlen(sendbuffer)))
+    {
+        //errorhandling("\nfail to send with code: {}\n", errno);
+        submit([]{
+            vastina_log::logtest(std::format("fail to send with code: {}\n", errno).c_str());
+        }, importance::lowest);
+    } 
+}
+
+void client::getfile(const char* filename){
+    std::ofstream ofs;
+
+    system(std::format("touch {}", filename).c_str());
+
+    ofs.open(filename, std::ofstream::out /*| std::ios::binary*/);
+    if(!ofs.is_open()){
+        //errorhandling("can't open file, error code: {}", errno);
+        submit([]{
+            vastina_log::logtest(std::format("can't open file, error code: {}", errno).c_str());
+        }, importance::lowest);
+        return ;
+    } 
+    {
+        int cnt;    char temp[1024];
+        memset(temp, 0, sizeof(temp));
+        if( (cnt = read(clientsock, (void*)temp, sizeof(temp)) ) > 0)
+        {
+            if(cnt==1024) --cnt;
+            temp[cnt] = 0x00;
+            ofs.write(temp, cnt);
+        }
+        ofs.close();
+        print("file recived\n");
+    }
+}
+
+bool client::recive_message(){
+    int bufferlen = -1;
+    {
+        if( (bufferlen = read(clientsock, (void*)readbuffer, sizeof(readbuffer))) > 0)
+        {
+            readbuffer[bufferlen] = '\0';
+        }
+    }
+    if(bufferlen < 0) return false;
+    return true;
+}
+
+void client::deal_message(){
+    if(sendfile(readbuffer)){
+        getfile("clientfile");
+    }
+    else{
+        print("\nrecive message:{} \n", readbuffer);
+    }
+    memset(readbuffer, 0, sizeof(readbuffer));
+}
+
+#endif
