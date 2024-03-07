@@ -6,8 +6,8 @@
 #define VASTINA_CPP
 #include "tools.h"
 
-enum importance{
-        maintk=1,
+enum class IMPORTANCE{
+        maintk,
         common,
         lowest 
     };
@@ -26,7 +26,7 @@ private:
 public:
     void start();
     template<typename F, typename...Args>
-        void submittask(F&& f, Args&&... args, int level);
+        void submittask(F&& f, Args&&... args, IMPORTANCE level);
     void lastwork();
     void setstoped();
 };
@@ -52,7 +52,7 @@ void Taskpool::start(){
     }};
     common.worker = std::thread{ [this](){ common.work(); } };
     }
-    submittask([]{ vastina_log::logtest("taskpool init"); } , importance::lowest);
+    submittask([]{ vastina_log::logtest("taskpool init"); } , IMPORTANCE::lowest);
 }
 
 void Taskpool::lastwork() {
@@ -72,11 +72,11 @@ void Taskpool::lastwork() {
 };
 
 template<typename F, typename...Args>
-void Taskpool::submittask(F&& f, Args&&... args, int level) {
+void Taskpool::submittask(F&& f, Args&&... args, IMPORTANCE level) {
     std::function<decltype(f(args...))()> func 
         = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
     auto task_ptr = std::make_shared<std::packaged_task<decltype(f(args...))()>>(func);
-    if(level == importance::lowest){
+    if(level == IMPORTANCE::lowest){
         {
             std::unique_lock<std::mutex> lock(tmutex);
             tasks.emplace(std::function<void()>( [task_ptr](){
@@ -84,7 +84,7 @@ void Taskpool::submittask(F&& f, Args&&... args, int level) {
             }));
         }       
     }
-    else if(level == importance::common){
+    else if(level == IMPORTANCE::common){
         {
             std::unique_lock<std::mutex> lk(tmutex);
             tasks2.emplace(std::function<void()>( [task_ptr](){

@@ -24,12 +24,12 @@
 #include "Taskpool.hpp"
 
 
-const char* localaddr = "127.0.0.1";
+static const char* localaddr = "127.0.0.1";
 
 class client{
 private:
     int clientsock;
-    char readbuffer[4096], sendbuffer[4096];
+    char readbuffer[BUFSIZ], sendbuffer[BUFSIZ];
     Taskpool tpool;
     std::condition_variable condition;
     struct _stop{
@@ -52,7 +52,7 @@ public:
     void setclientsock(int af,int type,int protocol, short port);
     void connect_(int af,int type,int protocol, unsigned short port);
     template<typename F, typename...Args>
-        void submit(F&& f, Args&&... args, int level);
+        void submit(F&& f, Args&&... args, IMPORTANCE level);
 
     //void manage(const char* request);
     void send_message();
@@ -138,7 +138,7 @@ void client::setclientsock(int af,int type,int protocol, short port = -1){
         errorhandling("bind fail error code: {}\n", errno);
         submit([]{
             vastina_log::logtest("bind fail");
-        }, importance::lowest);
+        }, IMPORTANCE::lowest);
     }   
 }
 
@@ -151,13 +151,13 @@ void client::connect_(int af,int type,int protocol, unsigned short port = 8888){
     if(connect(clientsock, (struct sockaddr*)&serveaddr, sizeof(serveaddr)) == -1){
         submit([]{
             vastina_log::logtest(std::format("connect fail {}\n", errno).c_str());
-        }, importance::lowest);
+        }, IMPORTANCE::lowest);
     }
 }
 
 template<typename F, typename...Args>
-void client::submit(F&& f, Args&&... args, int level){
-    if(level == importance::maintk){
+void client::submit(F&& f, Args&&... args, IMPORTANCE level){
+    if(level == IMPORTANCE::maintk){
         //todo
     }
     else tpool.submittask(f, args..., level);
@@ -168,7 +168,7 @@ void client::send_message(){
     {
         submit([]{
             vastina_log::logtest(std::format("fail to send with code: {}\n", errno).c_str());
-        }, importance::lowest);
+        }, IMPORTANCE::lowest);
     } 
 }
 
@@ -181,7 +181,7 @@ void client::getfile(const char* filename){
     if(!ofs.is_open()){
         submit([]{
             vastina_log::logtest(std::format("can't open file, error code: {}", errno).c_str());
-        }, importance::lowest);
+        }, IMPORTANCE::lowest);
         return ;
     } 
     {
@@ -194,7 +194,7 @@ void client::getfile(const char* filename){
             ofs.write(temp, cnt);
         }
         ofs.close();
-        strcpy(readbuffer, "file recived\n");
+        strcpy(readbuffer, "file recived\n\0");
         //print("file recived\n");
         //fucksfml("file recived\n");
     }

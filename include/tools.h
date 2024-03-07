@@ -174,7 +174,7 @@ int CreateSeverSocket(int af,int type,int protocol)
 		return INVALID_SOCKET;
 	}
 	sockaddr_in addr{};
-	addr.sin_family = AF_INET;
+	addr.sin_family = af;
 	//im.lock();
 	addr.sin_port = htons(PORT);
 	//im.unlock();
@@ -200,9 +200,9 @@ int CreateClientSocket(int af,int type,int protocol){
     memset(&clntaddr, 0, sizeof(clntaddr));
     clntaddr.sin_family = AF_INET;
     clntaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	unsigned short port;	printf("input port:");	
-	if(scanf("%hd", &port) )
-    clntaddr.sin_port = htons(port) ;
+	//unsigned short port;	printf("input port:");	
+	//if(scanf("%hd", &port) )
+    clntaddr.sin_port = htons(PORT) ;
     if (connect(so, (struct sockaddr*)&clntaddr, sizeof(clntaddr)) == INVALID_SOCKET)
         errorhandling("connect fail {}\n", errno);
     
