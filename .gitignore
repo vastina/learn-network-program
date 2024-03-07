@@ -2,3 +2,4 @@
 *.txt
 *.backup
 .vscode/
+include/history/*
