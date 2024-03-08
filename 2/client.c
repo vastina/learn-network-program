@@ -5,7 +5,7 @@
 
 
 int main(){
-    int servesock = CreateClientSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int clntsock = CreateClientSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     char buffer[BUFSIZ];
     //char buffer[BUFSIZ];
@@ -17,24 +17,24 @@ int main(){
     {
         printf("send message or quit(enter quit or q to quit) : ");
 		scanf("%s", buffer);
-		if (-1 == write(servesock, buffer, strlen(buffer)))
+		if (-1 == write(clntsock, buffer, strlen(buffer)))
 		{
             errorhandling("fail to send with code: %d\n", errno);
 		}
         if(quitjudge(buffer)){
-            shutdown(servesock, SHUT_WR);
+            shutdown(clntsock, SHUT_WR);
             break;
         } 
         else if(sendfile(buffer)){
             int read_count = 0;
-            if((read_count = read(servesock, buffer, BUFSIZ) )> 0)
+            if((read_count = read(clntsock, buffer, BUFSIZ) )> 0)
                 fwrite((void*)buffer, sizeof(char), read_count, fp);
             fclose(fp);
             printf("file received\n");
         }
         memset(buffer, 0, sizeof(buffer));
         
-		if (read(servesock, buffer, sizeof(char)*BUFSIZ) > 0)
+		if (read(clntsock, buffer, sizeof(char)*BUFSIZ) > 0)
 		{
             if(quitjudge(buffer)){
                 printf("serve disconnect\n");
@@ -46,9 +46,9 @@ int main(){
     }
     printf("will be closed in one minute.......\n");
     int t = clock();
-    while(clock()-t < 50) read(servesock, buffer, BUFSIZ);
+    while(clock()-t < 50) read(clntsock, buffer, BUFSIZ);
     printf("last message from serve: %s \n", buffer);
 
-    close(servesock);
+    close(clntsock);
     return 0;
 }

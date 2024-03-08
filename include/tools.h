@@ -49,7 +49,7 @@ int CreateSeverSocket(int af,int type,int protocol)
 	//给socket绑定ip地址和端口号
 	struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;//和创建socket时必须一样
+	addr.sin_family = af;//和创建socket时必须一样
 	short PORT = 8888;
 	addr.sin_port = htons(PORT);//define htons 本地字节转网络字节
 	addr.sin_addr.s_addr = inet_addr("127.0.0.1");//网卡的任意ip//inet_addr("127.0.0.1");//转为二进制
