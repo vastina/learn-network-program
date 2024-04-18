@@ -13,7 +13,7 @@ void logtime(std::fstream &fp);
 
 };    
 
-void vastina_log::logtest(const char* buffer){
+inline void vastina_log::logtest(const char* buffer){
     std::fstream fp;
     fp.open("log.txt", std::fstream::app);
     fp.write(buffer, strlen(buffer));
@@ -21,7 +21,7 @@ void vastina_log::logtest(const char* buffer){
     fp.close();
 }
 
-void vastina_log::logtime(std::fstream &fp){
+inline void vastina_log::logtime(std::fstream &fp){
     auto currentTime = std::chrono::system_clock::now();
     std::time_t currentTime_t = std::chrono::system_clock::to_time_t(currentTime);
     std::tm localTime = *std::localtime(&currentTime_t);

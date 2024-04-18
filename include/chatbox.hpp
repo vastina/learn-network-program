@@ -6,7 +6,7 @@
 #include <string>
 
 // #define VASTINA_CPP
-// #include "tools.h"
+#include "tools.h"
 
 class ChatBox {
 //private:
@@ -29,14 +29,14 @@ public:
 
 };
 
-void ChatBox::addMessage(const std::string &message) {
+inline void ChatBox::addMessage(const std::string &message) {
     messages.push_back(message);
     if (messages.size() > maxMessages) {
         messages.pop_front();
     }
 }
 
-void ChatBox::draw(sf::RenderWindow& window, const sf::Font& font) {
+inline void ChatBox::draw(sf::RenderWindow& window, const sf::Font& font) {
     for (std::size_t i = 0; i < messages.size(); ++i) {
         sf::Text text(messages[i], font, fontSize);
         text.setPosition(10.0f, float(i * (fontSize + 5) + 10));
@@ -44,7 +44,7 @@ void ChatBox::draw(sf::RenderWindow& window, const sf::Font& font) {
     }
 }   
 
-void ChatBox::addnewMessage(std::string message,sf::RenderWindow& window, const sf::Font& font){
+inline void ChatBox::addnewMessage(std::string message,sf::RenderWindow& window, const sf::Font& font){
     // std::string receivedMessage="";
     // for(size_t i=0; i<strlen(message); ++i) receivedMessage += message[i];
     gettimebystring(message);

@@ -1,42 +1,49 @@
-#include <fstream>
-#include <iostream>
 #include <vector>
-#include <memory>
-#include <thread>
 #include <future>
 
-#define VASTINA_CPP
 #include "../include/tools.h"
 #include "../include/client.hpp"
-#include "../include/ThreadPool.hpp"
 
+constexpr unsigned short PORT{1644};
+std::vector< std::future<int> > results{};
+std::vector< std::thread> workers{};
+std::vector< std::packaged_task<int()> > tasks{};
 
 int main(){
 
     vastina_log::logtest("start");
 
-    printf("port to connect: 8888\n");
     client *client_ = new client();
 
     client_->init();
 
     client_->setclientsock(AF_INET, SOCK_STREAM, IPPROTO_TCP, -1);
-    client_->connect_(AF_INET, SOCK_STREAM, IPPROTO_TCP, 8888);
-    
-    ThreadPool pool(2);
-    std::vector< std::future<int> > results{};
+    client_->connect_(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT);
 
-    results.emplace_back(pool.enqueue([&client_]()->int{
-        client_->test1();
-        return 1;
+    tasks.emplace_back(([&client_]()->int{
+        client_->reader();
+        return 0;
     } ) );
 
-    results.emplace_back(pool.enqueue([&client_]()->int{
-        client_->test2();
-        return 2;
+    tasks.emplace_back(([&client_]()->int{
+        client_->sender();
+        return 0;
     } ) );
 
-    for(int i=1;auto&result: results) print("({},{})\n", i, result.get()), ++i;
+
+    for(auto&& task: tasks)
+    {
+        results.emplace_back(task.get_future() );
+        workers.emplace_back(
+            [&task] 
+            {
+                task(); 
+            }
+        );
+    }
+    for(auto&& worker: workers) worker.join();
+    for(int count=0;auto& result:results)
+        print("({}, {})\n", ++count,result.get());
 
     client_->end();
 

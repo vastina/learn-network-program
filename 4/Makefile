@@ -1,5 +1,5 @@
 s ?= client.cpp
-e ?= 1
+e ?= client.out
 CXX ?= g++
 CXXFLAGS := -pthread -Wall -g  -o$(e) -std=c++20 #-fsanitize=thread  
 SFMLFLAGS := -lsfml-graphics -lsfml-window -lsfml-system

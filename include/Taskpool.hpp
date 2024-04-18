@@ -2,9 +2,13 @@
 #define _TASKPOOL_H_
 
 #include <thread>
+#include <future>
+#include <queue>
+#include <functional>
+#include <chrono>
+#include <thread>
 
-#define VASTINA_CPP
-#include "tools.h"
+#include "../include/loger.hpp"
 
 enum class IMPORTANCE{
         maintk,
@@ -31,7 +35,7 @@ public:
     void setstoped();
 };
 
-void Taskpool::start(){
+inline void Taskpool::start(){
     {
     std::unique_lock<std::mutex> lk(tmutex);
     common.stop = false;
@@ -55,14 +59,14 @@ void Taskpool::start(){
     submittask([]{ vastina_log::logtest("taskpool init"); } , IMPORTANCE::lowest);
 }
 
-void Taskpool::lastwork() {
+inline void Taskpool::lastwork() {
     {
         std::unique_lock<std::mutex> lock(tmutex);
         std::function<void()> task;
         while (!tasks.empty())
         {
             {
-                task = std::move(tasks.front());
+                task = std::move(tasks.back());
                 tasks.pop();
             }
             task();
@@ -96,7 +100,7 @@ void Taskpool::submittask(F&& f, Args&&... args, IMPORTANCE level) {
     }
 };
 
-void Taskpool::setstoped(){
+inline void Taskpool::setstoped(){
     {
         std::unique_lock<std::mutex> lk(tmutex);
         common.stop = true;
