@@ -1,4 +1,3 @@
-#define VASTINA_C
 #include "../include/tools.h"
 
 int main(){

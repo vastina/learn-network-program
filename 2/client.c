@@ -1,6 +1,5 @@
 #include <time.h>
 
-#define VASTINA_C
 #include "../include/tools.h"
 
 
