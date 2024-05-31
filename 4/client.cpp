@@ -9,7 +9,7 @@ std::vector< std::future<int> > results{};
 std::vector< std::thread> workers{};
 std::vector< std::packaged_task<int()> > tasks{};
 
-int main(){
+int main(int argc, char** argv){
 
     vastina_log::logtest("start");
 
@@ -18,7 +18,7 @@ int main(){
     client_->init();
 
     client_->setclientsock(AF_INET, SOCK_STREAM, IPPROTO_TCP, -1);
-    client_->connect_(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT);
+    client_->connect_(AF_INET, SOCK_STREAM, IPPROTO_TCP, argc > 1 ? std::atoi(argv[1]) : PORT);
 
     tasks.emplace_back(([&client_]()->int{
         client_->reader();

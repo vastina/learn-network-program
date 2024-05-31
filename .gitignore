@@ -6,3 +6,5 @@ include/history/*
 **/*.out
 .cache
 compile_commands.json
+*.txt
+!CMakeLists.txt

@@ -10,9 +10,10 @@
 #include "../include/tools.h"
 
 
-int main(){
+int main(int argc, char** argv){
     printf("port to connect: 8888,\n");
-    int clientsock = CreateClientSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int clientsock = CreateClientSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP,
+         argc > 1 ? std::atoi(argv[1]) : 1145);
     //char buffer[BUFSIZ]; data race 
     bool stop = false;
     std::mutex smutex;

@@ -5,7 +5,6 @@
 #include <SFML/Graphics.hpp>//put deque after this will cause compile problem
 #include <string>
 
-// #define VASTINA_CPP
 #include "tools.h"
 
 class ChatBox {
